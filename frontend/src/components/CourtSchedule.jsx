@@ -25,6 +25,9 @@ export function CourtSchedule({ courts, slots, selectedSlotId, onSelectSlot, onT
             <div className="court-head">
               <strong>{court.name}</strong>
               <span>{court.surface}</span>
+              <span className="court-hours">
+                {court.open_time}-{court.close_time} · {court.slot_duration}分钟
+              </span>
             </div>
             <div className="slot-list">
               {slots

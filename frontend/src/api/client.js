@@ -19,8 +19,24 @@ async function request(path, options = {}) {
 
 export const api = {
   getCourts: () => request('/courts'),
+  createCourt: (payload) =>
+    request('/courts', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
   getMembers: () => request('/members'),
-  getTimeSlots: (date) => request(`/time-slots${date ? `?date=${date}` : ''}`),
+  getTimeSlots: (date, courtId) =>
+    request(`/time-slots${date || courtId ? '?' : ''}${date ? `date=${date}` : ''}${date && courtId ? '&' : ''}${courtId ? `court_id=${courtId}` : ''}`),
+  createTimeSlot: (payload) =>
+    request('/time-slots', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  generateTimeSlots: (payload) =>
+    request('/time-slots/generate', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
   updateTimeSlot: (slotId, payload) =>
     request(`/time-slots/${slotId}`, {
       method: 'PATCH',

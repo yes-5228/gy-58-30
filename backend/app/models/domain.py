@@ -6,6 +6,9 @@ class Court(BaseModel):
     name: str
     surface: str
     indoor: bool = True
+    open_time: str = "08:00"
+    close_time: str = "21:00"
+    slot_duration: int = 120
 
 
 class Member(BaseModel):

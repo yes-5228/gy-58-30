@@ -1,8 +1,36 @@
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 from app.models.domain import Booking, Court, Member, TimeSlot
+
+
+def _parse_time(time_str: str) -> int:
+    hours, minutes = map(int, time_str.split(":"))
+    return hours * 60 + minutes
+
+
+def _format_time(minutes: int) -> str:
+    return f"{minutes // 60:02d}:{minutes % 60:02d}"
+
+
+def _generate_slot_labels(open_time: str, close_time: str, slot_duration: int) -> list[str]:
+    open_min = _parse_time(open_time)
+    close_min = _parse_time(close_time)
+    labels = []
+    current = open_min
+    while current + slot_duration <= close_min:
+        end = current + slot_duration
+        labels.append(f"{_format_time(current)}-{_format_time(end)}")
+        current = end
+    return labels
+
+
+def _is_peak(label: str, peak_start: str, peak_end: str) -> bool:
+    slot_start = _parse_time(label.split("-")[0])
+    peak_start_min = _parse_time(peak_start)
+    peak_end_min = _parse_time(peak_end)
+    return peak_start_min <= slot_start < peak_end_min
 
 
 class InMemoryStore:
@@ -27,10 +55,10 @@ class InMemoryStore:
 
     def _seed(self) -> None:
         self.courts = {
-            1: Court(id=1, name="A1 标准场", surface="木地板", indoor=True),
-            2: Court(id=2, name="A2 标准场", surface="木地板", indoor=True),
-            3: Court(id=3, name="B1 训练场", surface="PVC", indoor=True),
-            4: Court(id=4, name="C1 竞赛场", surface="专业地胶", indoor=True),
+            1: Court(id=1, name="A1 标准场", surface="木地板", indoor=True, open_time="08:00", close_time="21:00", slot_duration=120),
+            2: Court(id=2, name="A2 标准场", surface="木地板", indoor=True, open_time="08:00", close_time="21:00", slot_duration=120),
+            3: Court(id=3, name="B1 训练场", surface="PVC", indoor=True, open_time="09:00", close_time="22:00", slot_duration=60),
+            4: Court(id=4, name="C1 竞赛场", surface="专业地胶", indoor=True, open_time="07:00", close_time="23:00", slot_duration=120),
         }
         self.members = {
             1: Member(id=1, name="散客", level="普通", discount_rate=1.0, phone=""),
@@ -39,15 +67,24 @@ class InMemoryStore:
             4: Member(id=4, name="陈教练", level="教练", discount_rate=0.7, phone="13800000003"),
         }
 
-        hours = ["08:00-10:00", "10:00-12:00", "14:00-16:00", "16:00-18:00", "19:00-21:00"]
+        peak_start = "19:00"
+        peak_end = "21:00"
+        default_price = 80.0
+        peak_price = 120.0
+        off_peak_price = 60.0
+
         today = date.today()
         for day_offset in range(7):
             current_day = today + timedelta(days=day_offset)
             for court in self.courts.values():
-                for index, label in enumerate(hours):
-                    price = 60.0 if index < 2 else 80.0
-                    if label == "19:00-21:00":
-                        price = 120.0
+                slot_labels = _generate_slot_labels(court.open_time, court.close_time, court.slot_duration)
+                for label in slot_labels:
+                    if _is_peak(label, peak_start, peak_end):
+                        price = peak_price
+                    elif _is_peak(label, "12:00", "14:00"):
+                        price = off_peak_price
+                    else:
+                        price = default_price
                     slot_id = self.next_slot_id()
                     self.time_slots[slot_id] = TimeSlot(
                         id=slot_id,

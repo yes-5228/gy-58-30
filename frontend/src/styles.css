@@ -183,15 +183,29 @@ h2 {
 
 .court-head {
   display: flex;
-  justify-content: space-between;
-  gap: 10px;
+  flex-direction: column;
+  gap: 6px;
   padding: 12px;
   background: #f8faf8;
+}
+
+.court-head strong {
+  font-size: 15px;
 }
 
 .court-head span {
   color: #66746f;
   font-size: 12px;
+}
+
+.court-hours {
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: #e9f0ec;
+  color: #2d5043 !important;
+  font-weight: 600;
+  font-size: 11px !important;
+  width: fit-content;
 }
 
 .slot-list {

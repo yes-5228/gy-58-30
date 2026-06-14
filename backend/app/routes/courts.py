@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from app.models.domain import Court, TimeSlot
-from app.schemas import CourtCreate, TimeSlotCreate, TimeSlotUpdate
+from app.schemas import CourtCreate, GenerateTimeSlotsRequest, TimeSlotCreate, TimeSlotUpdate
 from app.services import courts as court_service
 
 router = APIRouter(tags=["courts"])
@@ -25,6 +25,11 @@ def list_time_slots(date: str | None = None, court_id: int | None = None) -> lis
 @router.post("/time-slots", response_model=TimeSlot, status_code=201)
 def create_time_slot(payload: TimeSlotCreate) -> TimeSlot:
     return court_service.create_time_slot(payload)
+
+
+@router.post("/time-slots/generate", response_model=list[TimeSlot], status_code=201)
+def generate_time_slots(payload: GenerateTimeSlotsRequest) -> list[TimeSlot]:
+    return court_service.generate_time_slots(payload)
 
 
 @router.patch("/time-slots/{slot_id}", response_model=TimeSlot)
